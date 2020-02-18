@@ -4,10 +4,9 @@ import com.dev.spring.dto.UserResponseDto;
 import com.dev.spring.model.User;
 import com.dev.spring.service.UserService;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,30 +16,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/user")
 public class UserController {
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping("/{id}")
     public UserResponseDto get(@PathVariable("id") Long id) {
-        UserResponseDto userResponseDto = new UserResponseDto();
-        User user = userService.get(id);
-        userResponseDto.setName(user.getName());
-        userResponseDto.setAge(user.getAge());
-        userResponseDto.setFootsize(user.getFootSize());
-        return userResponseDto;
+        return getDto(userService.get(id));
     }
 
     @GetMapping("/")
     public List<UserResponseDto> getAll() {
-        List<UserResponseDto> userResponseDtoList = new ArrayList<>();
-        for (User user : userService.listUsers()) {
-            UserResponseDto userResponseDto = new UserResponseDto();
-            userResponseDto.setName(user.getName());
-            userResponseDto.setAge(user.getAge());
-            userResponseDto.setFootsize(user.getFootSize());
-            userResponseDtoList.add(userResponseDto);
-        }
-        return userResponseDtoList;
+        return userService.listUsers().stream().map(this::getDto).collect(Collectors.toList());
     }
 
     @RequestMapping(value = "/inject", method = RequestMethod.GET)
@@ -63,5 +52,13 @@ public class UserController {
         user.setFootSize(46D);
         userService.add(user);
         return "- Vincent, are we happy? - Yeah, we happy!";
+    }
+
+    private UserResponseDto getDto(User user) {
+        UserResponseDto userResponseDto = new UserResponseDto();
+        userResponseDto.setName(user.getName());
+        userResponseDto.setAge(user.getAge());
+        userResponseDto.setFootsize(user.getFootSize());
+        return userResponseDto;
     }
 }

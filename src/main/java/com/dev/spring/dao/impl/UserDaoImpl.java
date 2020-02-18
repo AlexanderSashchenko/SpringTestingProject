@@ -8,13 +8,15 @@ import java.util.List;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public class UserDaoImpl implements UserDao {
-    @Autowired
-    private SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
+
+    public UserDaoImpl(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
 
     @Override
     public User add(User user) {
@@ -36,8 +38,7 @@ public class UserDaoImpl implements UserDao {
     @Override
     public User get(Long id) {
         try (Session session = sessionFactory.openSession()) {
-            return session.createQuery("from User where id = :id", User.class)
-                    .setParameter("id", id).uniqueResult();
+            return session.get(User.class, id);
         } catch (Exception e) {
             throw new RuntimeException("Failed to get user by id");
         }
